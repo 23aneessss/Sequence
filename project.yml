@@ -25,17 +25,24 @@ targets:
       - path: Sequence
         excludes:
           - "**/.DS_Store"
+    info:
+      path: Sequence/Info.plist
+      properties:
+        CFBundleDisplayName: Sequence
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        UIBackgroundModes:
+          - fetch
+          - processing
+        BGTaskSchedulerPermittedIdentifiers:
+          - com.sequence.app.refresh
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.sequence.app
         PRODUCT_NAME: Sequence
-        INFOPLIST_KEY_UILaunchScreen_Generation: YES
-        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
-        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
-        INFOPLIST_KEY_CFBundleDisplayName: Sequence
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
-        GENERATE_INFOPLIST_FILE: YES
         SWIFT_EMIT_LOC_STRINGS: YES
         TARGETED_DEVICE_FAMILY: "1"
 

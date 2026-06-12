@@ -38,6 +38,10 @@ final class SettingsStore {
         static let graphDirection = "sequence.graphDirection"
         static let streakMinLevel = "sequence.streakMinLevel"
         static let reminderTime = "sequence.defaultReminderTime"
+        static let taskReminderTime = "sequence.taskReminderTime"
+        static let dndEnabled = "sequence.dndEnabled"
+        static let dndStart = "sequence.dndStart"
+        static let dndEnd = "sequence.dndEnd"
     }
 
     private let defaults = UserDefaults.standard

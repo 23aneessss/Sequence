@@ -2,28 +2,29 @@
 //  AuthManager.swift
 //  Sequence
 //
-//  Sign in with Apple, local-only. There is no backend: the Apple user id is a
-//  stable, non-secret identifier we persist and use to partition on-device data
-//  (see SequenceRepository.ownerID) so multiple people can share one install
-//  without seeing each other's habits. Reference: app_plan.md (auth).
+//  Local profile sign-in — no Apple account, no backend. The user enters a name;
+//  each distinct name becomes its own private profile via the derived owner id
+//  (see SequenceRepository.ownerID), so several people can share one install
+//  without seeing each other's habits. The name also personalizes the UI.
 //
 
 import Foundation
 import Observation
-import AuthenticationServices
 
 @Observable
-final class AuthManager: NSObject {
+final class AuthManager {
 
     enum Status {
-        /// Launch-time, before the stored credential has been revalidated.
+        /// Launch-time, before the stored profile has been read.
         case unknown
         case signedOut
         case signedIn
     }
 
     private(set) var status: Status = .unknown
+    /// Stable per-profile id used to partition data. Empty when signed out.
     private(set) var userID: String = ""
+    /// The name the user typed — shown across the app ("Good morning, Aness").
     private(set) var displayName: String = ""
 
     private enum Keys {
@@ -31,51 +32,22 @@ final class AuthManager: NSObject {
         static let displayName = "sequence.auth.displayName"
     }
 
-    override init() {
-        super.init()
+    init() {
         userID = UserDefaults.standard.string(forKey: Keys.userID) ?? ""
         displayName = UserDefaults.standard.string(forKey: Keys.displayName) ?? ""
-        // Optimistic: trust the stored id so we don't flash the sign-in screen,
-        // then confirm with Apple in `revalidate()`.
         status = userID.isEmpty ? .signedOut : .signedIn
     }
 
-    /// Confirms the stored Apple credential is still valid (the user may have
-    /// revoked access in Settings). Safe to call on every launch.
-    func revalidate() async {
-        guard !userID.isEmpty else {
-            status = .signedOut
-            return
-        }
-        let provider = ASAuthorizationAppleIDProvider()
-        let credentialState = try? await provider.credentialState(forUserID: userID)
-        switch credentialState {
-        case .authorized:
-            status = .signedIn
-        case .revoked, .notFound:
-            signOut()
-        default:
-            break // transient/unknown — keep the optimistic signed-in state
-        }
-    }
-
-    /// Processes the result of a `SignInWithAppleButton`.
-    func handle(_ result: Result<ASAuthorization, Error>) {
-        switch result {
-        case .success(let authorization):
-            guard let credential = authorization.credential as? ASAuthorizationAppleIDCredential else { return }
-            userID = credential.user
-            UserDefaults.standard.set(credential.user, forKey: Keys.userID)
-            // Full name is only delivered on the first authorization; persist it then.
-            if let given = credential.fullName?.givenName, !given.isEmpty {
-                displayName = given
-                UserDefaults.standard.set(given, forKey: Keys.displayName)
-            }
-            status = .signedIn
-        case .failure(let error):
-            // User cancellation surfaces here too; nothing to persist.
-            print("AuthManager: sign in failed — \(error.localizedDescription)")
-        }
+    /// Signs in (or switches to) a local profile identified by `name`. Returning
+    /// with the same name reuses that profile's data; a new name starts fresh.
+    func signIn(name: String) {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        displayName = trimmed
+        userID = "local:" + Self.slug(trimmed)
+        UserDefaults.standard.set(userID, forKey: Keys.userID)
+        UserDefaults.standard.set(displayName, forKey: Keys.displayName)
+        status = .signedIn
     }
 
     func signOut() {
@@ -86,17 +58,11 @@ final class AuthManager: NSObject {
         status = .signedOut
     }
 
-    #if DEBUG
-    /// Dev-only bypass. Sign in with Apple's XPC service frequently crashes in the
-    /// iOS Simulator (EXC_GUARD / LIBXPC), so this lets us exercise the rest of the
-    /// app there. Uses a fixed local id so partitioned data persists across launches.
-    /// Compiled out of Release builds entirely.
-    func signInForDevelopment() {
-        userID = "DEV_LOCAL_USER"
-        displayName = "Developer"
-        UserDefaults.standard.set(userID, forKey: Keys.userID)
-        UserDefaults.standard.set(displayName, forKey: Keys.displayName)
-        status = .signedIn
+    /// A stable, identifier-safe slug for an arbitrary display name.
+    private static func slug(_ name: String) -> String {
+        let mapped = name.lowercased().unicodeScalars.map {
+            CharacterSet.alphanumerics.contains($0) ? Character($0) : "-"
+        }
+        return String(mapped)
     }
-    #endif
 }

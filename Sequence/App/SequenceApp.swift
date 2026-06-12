@@ -49,10 +49,7 @@ struct SequenceApp: App {
                 .environment(notifications)
                 .environment(auth)
                 .preferredColorScheme(settings.appearance.colorScheme)
-                .task {
-                    notifications.configure(repo: repository, settings: settings)
-                    await auth.revalidate()
-                }
+                .task { notifications.configure(repo: repository, settings: settings) }
         }
         .modelContainer(container)
         .onChange(of: scenePhase) { _, phase in

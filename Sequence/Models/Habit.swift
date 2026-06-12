@@ -10,7 +10,7 @@ import Foundation
 import SwiftData
 
 @Model
-final class Habit {
+final class Habit: Identifiable {
     /// Stable identity, also used by notifications and exports.
     @Attribute(.unique) var id: UUID
 

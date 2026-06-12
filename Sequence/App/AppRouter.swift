@@ -45,10 +45,10 @@ final class AppRouter {
 /// The single root view installed by `SequenceApp`.
 struct RootView: View {
     var body: some View {
-        // Phase 1 scaffold: surfaces the Design System so the foundation is
-        // verifiable on a real simulator. Replaced by AppRouter-driven routing
-        // once Onboarding (Phase 10) and the Main tab bar (Phase 5) exist.
-        DesignSystemPreview()
+        // Phase 4 scaffold: surfaces the Sequence graph seeded with a year of
+        // data. Replaced by AppRouter-driven routing once Onboarding (Phase 10)
+        // and the Main tab bar (Phase 5) exist.
+        GraphDemoView()
     }
 }
 

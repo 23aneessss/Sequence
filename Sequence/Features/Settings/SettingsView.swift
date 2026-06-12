@@ -15,7 +15,6 @@ struct SettingsView: View {
     @State private var exportURL: URL?
 
     var body: some View {
-        @Bindable var settings = settings
         ZStack {
             SequenceColor.background.ignoresSafeArea()
             ScrollView {

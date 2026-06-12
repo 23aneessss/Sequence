@@ -9,6 +9,7 @@ import SwiftUI
 
 struct TasksView: View {
     @Environment(SequenceRepository.self) private var repo
+    @Environment(SettingsStore.self) private var settings
 
     @State private var showAdd = false
     @State private var perfectDay = false
@@ -95,7 +96,8 @@ struct TasksView: View {
     private var graphSection: some View {
         VStack(alignment: .leading, spacing: SequenceSpacing.item) {
             Text("Task Graph").sequenceTextStyle(.sectionHeader)
-            TaskContributionGraphView(completionRates: repo.taskCompletionRates())
+            TaskContributionGraphView(completionRates: repo.taskCompletionRates(),
+                                      weekStartsOn: settings.weekStartsOn)
             Text("Each square is a day. A full square is a Perfect Day.").sequenceTextStyle(.subtext)
         }
     }

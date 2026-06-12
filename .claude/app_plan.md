@@ -28,18 +28,20 @@ A `Compliance` pass closes every phase (see §9 checklist in `product_design.md`
 
 ---
 
-## 1. Naming Reconciliation (resolve before any code)
+## 1. Naming Convention (RESOLVED ✅)
 
-The two docs use different names for the central model. **Decision required from owner before Phase 2.**
+The two docs used different names for the central model. **Decided by owner:** "Sequence" is the **product/app name only** — not a code-model name.
 
-| Concept doc (`app_concept.md` §10) | Design doc (`product_design.md` §7.3) |
-|---|---|
-| `Habit`, `HabitLog` | `HabitSequence`, `sequence.mutateCompletionState(...)` |
-| `SequenceRepository` | `SequenceRepository` (agree) |
+| Concern | Name to use | Notes |
+|---|---|---|
+| App / product | **Sequence** | Display name, bundle, branding only |
+| Habit data model | **`Habit`** | `@Model`, full schema from `app_concept.md` §10.2 |
+| Daily log entry | **`HabitLog`** | `@Model` |
+| Task data model | **`DailyTask`** | `@Model` |
+| Data / aggregation layer | **`SequenceRepository`** | Keeps "Sequence" as a *layer* name, not a model |
+| Contribution graph | **"Sequence Graph"** | Product term in UI, backed by `ContributionGraphView` |
 
-**Proposed resolution (pending confirmation):** Use **`Habit`** + **`HabitLog`** as the SwiftData `@Model` names (clearer, matches the richer schema in `app_concept.md` §10.2), and keep **`SequenceRepository`** as the data/aggregation layer. The word "Sequence" stays as the *product* concept and the *graph* name, not the model name. The `product_design.md` repository skeleton is treated as a *pattern illustration*, not literal API.
-
-> ⚠️ Do not start Phase 2 until this is confirmed. Everything downstream references these names.
+The `HabitSequence` naming and the `product_design.md` §7.3 repository skeleton are treated as **pattern illustrations**, not literal API. The reserved word "Sequence" is used for the app, the repository layer, and the graph concept — never as a `@Model` class name.
 
 ---
 
@@ -281,11 +283,13 @@ A phase is done only when **all** hold:
 
 ## 6. Open Questions for Owner (resolve before coding)
 
-1. **Model naming** — confirm `Habit`/`HabitLog` vs `HabitSequence` (§1). *Blocks Phase 2.*
-2. **Minimum iOS version** — docs say iOS 17 (SwiftData, `@Observable`, `.sensoryFeedback`). Confirm no iOS 16 support needed.
-3. **Timed habit background timer** — true background-running timer vs. timestamp-diff on return. Affects Phase 5 scope (background execution is constrained on iOS).
-4. **Assets** — confirm logo/icon asset delivery before Phase 10/11.
-5. **Cloud sync** — concept says local-only v1.0; confirm no CloudKit in scope.
+1. ~~**Model naming**~~ — **RESOLVED** (§1): app = "Sequence"; models = `Habit`/`HabitLog`/`DailyTask`; layer = `SequenceRepository`.
+2. **Minimum iOS version** — docs imply iOS 17 (SwiftData, `@Observable`, `.sensoryFeedback`). Will default to **iOS 17** unless told otherwise.
+3. **Timed habit background timer** — true background-running timer vs. timestamp-diff on return. iOS constrains true background execution, so will default to **timestamp-diff on return** unless told otherwise. Affects Phase 5.
+4. **Assets** — logo/icons delivered separately (`app_concept.md` p.706); needed before Phase 10/11.
+5. **Cloud sync** — concept says local-only v1.0; will assume **no CloudKit** unless told otherwise.
+
+> For items 2, 3, 5 I'll proceed with the sensible defaults noted above unless you say otherwise — none of them block starting Phase 1.
 
 ---
 

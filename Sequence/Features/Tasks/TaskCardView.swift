@@ -59,7 +59,7 @@ struct TaskCardView: View {
 
     private var priorityColor: Color {
         switch task.priority {
-        case .high:   return Color(hex: "E05C5C")
+        case .high:   return SequenceColor.alert
         case .medium: return SequenceColor.accentTeal
         case .low:    return SequenceColor.textSecondary
         }

@@ -14,7 +14,7 @@ struct SequenceLogo: View {
     var progress: Double = 1
 
     private let dimension = 4
-    private let hex = "48A69E"
+    private let hex = DefaultPalette.defaultHex
 
     var body: some View {
         let spacing = size * 0.08

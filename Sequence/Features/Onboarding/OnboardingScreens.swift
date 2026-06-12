@@ -54,7 +54,7 @@ struct OnboardingGraphScreen: View {
             HStack(spacing: SequenceSpacing.item) {
                 ForEach(0..<5, id: \.self) { i in
                     RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .fill(ColorScaleEngine.color(forHex: "48A69E", level: IntensityLevel(rawValue: levels[i]) ?? .empty))
+                        .fill(ColorScaleEngine.color(forHex: DefaultPalette.defaultHex, level: IntensityLevel(rawValue: levels[i]) ?? .empty))
                         .frame(width: 44, height: 44)
                         .onTapGesture {
                             UISelectionFeedbackGenerator().selectionChanged()

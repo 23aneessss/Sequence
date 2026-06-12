@@ -71,7 +71,7 @@ struct HabitCardView: View {
             if isBrokenToday {
                 Text("0d (was \(streakEngine.brokenStreakLength(for: habit))d)")
                     .sequenceTextStyle(.subtext)
-                    .foregroundStyle(Color(hex: "E05C5C"))
+                    .foregroundStyle(SequenceColor.alert)
             } else {
                 HStack(spacing: 3) {
                     Image(systemName: "flame.fill").font(.system(size: 11))
@@ -114,7 +114,7 @@ struct HabitCardView: View {
                 .font(.system(size: 15, weight: .semibold))
                 .foregroundStyle(SequenceColor.background)
                 .frame(width: 36, height: 36)
-                .background(Circle().fill(timer.isRunning(habit) ? Color(hex: "E05C5C") : SequenceColor.accentTeal))
+                .background(Circle().fill(timer.isRunning(habit) ? SequenceColor.alert : SequenceColor.accentTeal))
         }
         .buttonStyle(SequencePressStyle())
     }
@@ -156,7 +156,7 @@ struct HabitCardView: View {
 
     private var brokenBorder: some View {
         RoundedRectangle(cornerRadius: 1)
-            .fill(Color(hex: "E05C5C").opacity(0.4))
+            .fill(SequenceColor.alert.opacity(0.4))
             .frame(width: 3)
             .padding(.vertical, 6)
     }

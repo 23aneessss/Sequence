@@ -129,33 +129,44 @@ struct ContributionGraphView: View {
     }
 
     private func monthLabelsRow(columns: Int) -> some View {
-        let labels = monthLabels(columns: columns)
+        let segments = monthSegments(columns: columns)
         let columnWidth = zoom.cellSize + zoom.spacing
         return HStack(spacing: 0) {
-            ForEach(0..<labels.count, id: \.self) { col in
-                Text(labels[col])
+            ForEach(Array(segments.enumerated()), id: \.offset) { _, segment in
+                Text(segment.label)
                     .sequenceTextStyle(.subtext)
-                    .frame(width: columnWidth, alignment: .leading)
+                    .frame(width: CGFloat(segment.span) * columnWidth, alignment: .leading)
             }
         }
         .frame(height: zoom.cellSize)
     }
 
-    /// Per-column month abbreviation, shown only where the month changes.
-    private func monthLabels(columns: Int) -> [String] {
-        var result = Array(repeating: "", count: max(columns, 0))
-        var lastMonth = -1
+    /// Groups columns by calendar month so each month gets a slot wide enough for
+    /// its abbreviation (avoids per-column truncation). A month's label is shown
+    /// only if its segment is wide enough to fit; otherwise the slot is blank.
+    private func monthSegments(columns: Int) -> [(label: String, span: Int)] {
+        guard columns > 0 else { return [] }
         let calendar = Calendar.sequence
-        for col in 0..<max(columns, 0) {
+
+        func month(ofColumn col: Int) -> Int? {
             let slice = cells[(col * builder.rowCount)..<min((col + 1) * builder.rowCount, cells.count)]
-            guard let first = slice.first(where: { $0.isInRange }) else { continue }
-            let month = calendar.component(.month, from: first.date)
-            if month != lastMonth {
-                result[col] = String(calendar.shortMonthSymbols[month - 1].prefix(3))
-                lastMonth = month
+            return slice.first { $0.isInRange }.map { calendar.component(.month, from: $0.date) }
+        }
+
+        var segments: [(label: String, span: Int)] = []
+        var currentMonth = month(ofColumn: 0)
+        var runStart = 0
+        for col in 1...columns {
+            let m = col < columns ? month(ofColumn: col) : nil
+            if m != currentMonth || col == columns {
+                let span = col - runStart
+                let label = (currentMonth.map { span >= 3 ? String(calendar.shortMonthSymbols[$0 - 1].prefix(3)) : "" }) ?? ""
+                segments.append((label, span))
+                currentMonth = m
+                runStart = col
             }
         }
-        return result
+        return segments
     }
 
     // MARK: - Tooltip

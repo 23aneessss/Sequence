@@ -64,6 +64,10 @@ struct RootView: View {
             }
         case "tasks":
             TasksView()
+        case "stats":
+            StatsView()
+        case "settings":
+            SettingsView()
         default:
             MainTabView()
         }

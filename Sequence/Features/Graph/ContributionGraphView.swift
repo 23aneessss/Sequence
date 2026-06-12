@@ -44,6 +44,7 @@ enum GraphZoom: CaseIterable {
 struct ContributionGraphView: View {
     let habit: Habit
     var weekStartsOn: Int = 1
+    var direction: GraphDirection = .recentRight
     var onLongPressCell: ((GraphCell) -> Void)? = nil
 
     @State private var zoom: GraphZoom = .year
@@ -54,7 +55,17 @@ struct ContributionGraphView: View {
         ContributionGraphBuilder(weekStartsOn: weekStartsOn)
     }
     private var cells: [GraphCell] {
-        builder.cells(for: habit, dayCount: zoom.dayCount)
+        let base = builder.cells(for: habit, dayCount: zoom.dayCount)
+        return direction == .recentRight ? base : reverseColumns(base)
+    }
+
+    /// Reverses week-column order (for recent-on-left), preserving each column's
+    /// internal weekday rows.
+    private func reverseColumns(_ cells: [GraphCell]) -> [GraphCell] {
+        stride(from: 0, to: cells.count, by: builder.rowCount)
+            .map { Array(cells[$0..<min($0 + builder.rowCount, cells.count)]) }
+            .reversed()
+            .flatMap { $0 }
     }
 
     var body: some View {
@@ -89,7 +100,7 @@ struct ContributionGraphView: View {
             }
             .padding(.trailing, SequenceSpacing.half)
         }
-        .defaultScrollAnchor(.trailing)
+        .defaultScrollAnchor(direction == .recentRight ? .trailing : .leading)
     }
 
     private func cellView(_ cell: GraphCell, column: Int) -> some View {

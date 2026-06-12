@@ -14,6 +14,7 @@ struct HabitDetailView: View {
     var onClose: () -> Void
 
     @Environment(SequenceRepository.self) private var repo
+    @Environment(SettingsStore.self) private var settings
     @State private var editingCell: GraphCell?
 
     private let stats = StatsEngine()

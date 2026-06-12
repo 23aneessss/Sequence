@@ -18,10 +18,10 @@ struct MainTabView: View {
             TasksView()
                 .tabItem { Label("Tasks", systemImage: "checklist") }
 
-            ComingSoonView(title: "Stats", subtitle: "Momentum, seriousness, and per-habit analytics land in Phase 7.")
+            StatsView()
                 .tabItem { Label("Stats", systemImage: "chart.bar.fill") }
 
-            ComingSoonView(title: "Settings", subtitle: "Appearance, palette, and preferences land in Phase 8.")
+            SettingsView()
                 .tabItem { Label("Settings", systemImage: "gearshape.fill") }
         }
         .tint(SequenceColor.accentTeal)

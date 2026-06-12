@@ -14,6 +14,8 @@ struct SequenceApp: App {
     private let container: ModelContainer
     @State private var repository: SequenceRepository
     @State private var timerManager = HabitTimerManager()
+    @State private var settings = SettingsStore()
+    @State private var palette = PaletteStore()
 
     init() {
         do {
@@ -34,6 +36,9 @@ struct SequenceApp: App {
             RootView()
                 .environment(repository)
                 .environment(timerManager)
+                .environment(settings)
+                .environment(palette)
+                .preferredColorScheme(settings.appearance.colorScheme)
         }
         .modelContainer(container)
     }

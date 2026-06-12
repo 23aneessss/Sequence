@@ -41,9 +41,16 @@ enum HabitSchedule: Codable, Hashable {
     /// Every day.
     case daily
     /// Specific weekdays. Uses `Calendar` weekday numbers: 1 = Sunday … 7 = Saturday.
-    case weekdays(Set<Int>)
+    /// Stored as a sorted, de-duplicated array — SwiftData can't persist `Set`
+    /// inside an enum's associated value.
+    case weekdays([Int])
     /// Every N days from creation (N ≥ 1).
     case everyNDays(Int)
+
+    /// Builds a `.weekdays` case from any collection, normalizing to a sorted unique array.
+    static func on(_ days: some Sequence<Int>) -> HabitSchedule {
+        .weekdays(Array(Set(days)).sorted())
+    }
 
     /// Whether the habit is scheduled to occur on the given date.
     func isActive(on date: Date, createdAt: Date, calendar: Calendar = .current) -> Bool {

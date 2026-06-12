@@ -22,6 +22,10 @@ final class SequenceRepository {
     /// Active (non-archived) habits, oldest first. Refreshed on mutation.
     private(set) var habits: [Habit] = []
 
+    /// Bumped on any task create/toggle/delete so task-driven views re-render
+    /// (tasks are fetched on demand rather than held in a published array).
+    private(set) var taskRevision = 0
+
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
         refresh()
@@ -191,6 +195,42 @@ final class SequenceRepository {
         return (try? modelContext.fetch(descriptor)) ?? []
     }
 
+    /// Every non-template task across all days (feeds the Task Contribution Graph).
+    func allTasks() -> [DailyTask] {
+        let descriptor = FetchDescriptor<DailyTask>(
+            predicate: #Predicate { !$0.isTemplate },
+            sortBy: [SortDescriptor(\.date, order: .forward)]
+        )
+        return (try? modelContext.fetch(descriptor)) ?? []
+    }
+
+    /// Completed / total task counts for a day. Reference: app_concept.md §4.2.
+    func taskCompletion(on date: Date) -> (completed: Int, total: Int) {
+        let dayTasks = tasks(on: date)
+        return (dayTasks.filter(\.isCompleted).count, dayTasks.count)
+    }
+
+    /// Day → completion rate (0…1) for every day that has tasks.
+    func taskCompletionRates() -> [Date: Double] {
+        var byDay: [Date: (done: Int, total: Int)] = [:]
+        for task in allTasks() {
+            var bucket = byDay[task.date] ?? (0, 0)
+            bucket.total += 1
+            if task.isCompleted { bucket.done += 1 }
+            byDay[task.date] = bucket
+        }
+        return byDay.mapValues { $0.total > 0 ? Double($0.done) / Double($0.total) : 0 }
+    }
+
+    /// Carries incomplete tasks from `date` forward to today. Reference: app_concept.md §4.4.
+    func rollOverIncompleteTasks(from date: Date, to target: Date = .now) {
+        let targetDay = target.normalizedDay()
+        for task in tasks(on: date) where !task.isCompleted {
+            createTask(title: task.title, on: targetDay, priority: task.priority, timeAnchor: task.timeAnchor)
+        }
+        save()
+    }
+
     @discardableResult
     func createTask(
         title: String,
@@ -208,6 +248,7 @@ final class SequenceRepository {
         )
         modelContext.insert(task)
         save()
+        taskRevision += 1
         return task
     }
 
@@ -216,11 +257,13 @@ final class SequenceRepository {
         task.isCompleted.toggle()
         task.completedAt = task.isCompleted ? .now : nil
         save()
+        taskRevision += 1
     }
 
     func deleteTask(_ task: DailyTask) {
         modelContext.delete(task)
         save()
+        taskRevision += 1
     }
 
     // MARK: - Persistence

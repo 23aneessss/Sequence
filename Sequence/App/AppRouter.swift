@@ -44,11 +44,29 @@ final class AppRouter {
 
 /// The single root view installed by `SequenceApp`.
 struct RootView: View {
+    @Environment(SequenceRepository.self) private var repo
+    @Namespace private var debugNamespace
+
     var body: some View {
-        // Phase 4 scaffold: surfaces the Sequence graph seeded with a year of
-        // data. Replaced by AppRouter-driven routing once Onboarding (Phase 10)
-        // and the Main tab bar (Phase 5) exist.
-        GraphDemoView()
+        // The main app shell. Onboarding (Phase 10) will wrap this via AppRouter
+        // once it exists; for now we route straight to the tab bar.
+        //
+        // SEQ_SCREEN env var routes directly to a screen for screenshot
+        // verification (paired with SEQ_SEED). Normal launches ignore it.
+        switch ProcessInfo.processInfo.environment["SEQ_SCREEN"] {
+        case "create":
+            HabitCreationSheet()
+        case "detail":
+            if let habit = repo.habits.first(where: { $0.type == .counted }) ?? repo.habits.first {
+                HabitDetailView(habit: habit, namespace: debugNamespace) {}
+            } else {
+                MainTabView()
+            }
+        case "tasks":
+            TasksView()
+        default:
+            MainTabView()
+        }
     }
 }
 

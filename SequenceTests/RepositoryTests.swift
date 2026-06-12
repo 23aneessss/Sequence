@@ -172,6 +172,49 @@ final class RepositoryTests: XCTestCase {
         XCTAssertEqual(repo.templateTasks().count, 1)
     }
 
+    @MainActor
+    func testTaskCompletionRates() throws {
+        let repo = try makeRepo()
+        let day = Date.now.normalizedDay()
+        let a = repo.createTask(title: "A", on: day)
+        repo.createTask(title: "B", on: day)
+        repo.createTask(title: "C", on: day)
+        repo.createTask(title: "D", on: day)
+        repo.toggleTask(a) // 1 of 4 → 0.25
+
+        let rates = repo.taskCompletionRates()
+        XCTAssertEqual(rates[day] ?? -1, 0.25, accuracy: 0.001)
+        XCTAssertEqual(repo.taskCompletion(on: day).total, 4)
+        XCTAssertEqual(repo.taskCompletion(on: day).completed, 1)
+    }
+
+    @MainActor
+    func testRollOverIncompleteTasks() throws {
+        let repo = try makeRepo()
+        let cal = Calendar.sequence
+        let today = Date.now.normalizedDay()
+        let yesterday = cal.date(byAdding: .day, value: -1, to: today)!
+        let done = repo.createTask(title: "Done", on: yesterday)
+        repo.toggleTask(done)
+        repo.createTask(title: "Unfinished", on: yesterday)
+
+        repo.rollOverIncompleteTasks(from: yesterday, to: today)
+
+        let todayTitles = repo.tasks(on: today).map(\.title)
+        XCTAssertEqual(todayTitles, ["Unfinished"], "Only incomplete tasks roll forward")
+    }
+
+    @MainActor
+    func testTaskRevisionBumpsOnMutation() throws {
+        let repo = try makeRepo()
+        let before = repo.taskRevision
+        let task = repo.createTask(title: "X")
+        XCTAssertGreaterThan(repo.taskRevision, before)
+        let afterCreate = repo.taskRevision
+        repo.toggleTask(task)
+        XCTAssertGreaterThan(repo.taskRevision, afterCreate)
+    }
+
     // MARK: - Persistence across "relaunch"
 
     /// Writes through one container, releases it, opens a fresh container at the

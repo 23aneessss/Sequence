@@ -66,6 +66,33 @@ struct ContributionGraphBuilder {
         Int(ceil(Double(cells.count) / Double(rowCount)))
     }
 
+    /// Builds a column-major grid from a precomputed per-day (level, value) map.
+    /// Used by graphs whose intensity isn't derived from a habit (e.g. the Task
+    /// Contribution Graph, which maps a completion rate to a level).
+    func cells(dayValues: [Date: (level: IntensityLevel, value: Double)],
+               endingOn today: Date = .now, dayCount: Int = 365) -> [GraphCell] {
+        let end = today.normalizedDay(calendar)
+        guard let rangeStart = calendar.date(byAdding: .day, value: -(dayCount - 1), to: end) else {
+            return []
+        }
+        let gridStart = weekStart(onOrBefore: rangeStart)
+        let gridEnd = weekEnd(onOrAfter: end)
+
+        var result: [GraphCell] = []
+        var cursor = gridStart
+        while cursor <= gridEnd {
+            if cursor >= rangeStart && cursor <= end {
+                let entry = dayValues[cursor] ?? (.empty, 0)
+                result.append(GraphCell(date: cursor, level: entry.level, value: entry.value, isInRange: true))
+            } else {
+                result.append(.padding(cursor))
+            }
+            guard let next = calendar.date(byAdding: .day, value: 1, to: cursor) else { break }
+            cursor = next
+        }
+        return result
+    }
+
     // MARK: - Week alignment
 
     private func weekStart(onOrBefore date: Date) -> Date {

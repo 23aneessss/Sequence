@@ -13,12 +13,15 @@ import SwiftData
 struct SequenceApp: App {
     private let container: ModelContainer
     @State private var repository: SequenceRepository
+    @State private var timerManager = HabitTimerManager()
 
     init() {
         do {
             let container = try SequenceModelContainer.live()
             self.container = container
-            _repository = State(initialValue: SequenceRepository(modelContext: container.mainContext))
+            let repository = SequenceRepository(modelContext: container.mainContext)
+            DemoSeeder.seedIfRequested(into: repository)
+            _repository = State(initialValue: repository)
         } catch {
             // Container creation is app infrastructure; failure here is unrecoverable
             // and indicates a schema/migration fault, not user data we can fall back on.
@@ -30,6 +33,7 @@ struct SequenceApp: App {
         WindowGroup {
             RootView()
                 .environment(repository)
+                .environment(timerManager)
         }
         .modelContainer(container)
     }

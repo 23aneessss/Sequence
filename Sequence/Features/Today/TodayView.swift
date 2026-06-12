@@ -14,6 +14,8 @@ struct TodayView: View {
 
     @State private var showCreate = false
     @State private var selected: Habit?
+    @State private var showCoachMarks = false
+    @AppStorage("sequence.coachMarksSeen") private var coachMarksSeen = false
     @Namespace private var cardNamespace
 
     var body: some View {
@@ -29,11 +31,23 @@ struct TodayView: View {
                 dashboard
                 fab
             }
+
+            if showCoachMarks {
+                CoachMarkOverlay(isPresented: $showCoachMarks).zIndex(2)
+            }
         }
         .animation(.sequenceStructural, value: selected?.id)
         .sheet(isPresented: $showCreate) {
             HabitCreationSheet()
                 .presentationDetents([.fraction(0.6), .large])
+        }
+        .onChange(of: showCoachMarks) { _, showing in if !showing { coachMarksSeen = true } }
+        .task {
+            // Show the one-time coaching once there's a habit to point at.
+            if !coachMarksSeen && !repo.habits.isEmpty {
+                try? await Task.sleep(nanoseconds: 500_000_000)
+                withAnimation(.sequenceFluid) { showCoachMarks = true }
+            }
         }
     }
 

@@ -115,6 +115,9 @@ struct SettingsView: View {
                                                             tasks: repo.allTasks()) } label: {
                 linkRow("Export data (JSON)", "square.and.arrow.up")
             }
+            Button { UserDefaults.standard.set(false, forKey: "sequence.coachMarksSeen") } label: {
+                linkRow("Reset coach marks", "arrow.counterclockwise")
+            }
         }
     }
 

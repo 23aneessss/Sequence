@@ -135,6 +135,21 @@ struct StatsEngine {
         return weighted / weightTotal
     }
 
+    /// Per-day combined completion rate (0…1) across habits — the fraction of
+    /// habits reaching full completion that day. Feeds the momentum mini-grid.
+    func combinedCompletion(habits: [Habit], dayCount: Int, asOf today: Date = .now) -> [Date: Double] {
+        let active = habits.filter { !$0.isArchived }
+        guard !active.isEmpty else { return [:] }
+        let todayStart = today.normalizedDay(calendar)
+        var result: [Date: Double] = [:]
+        for offset in 0..<dayCount {
+            guard let date = calendar.date(byAdding: .day, value: -offset, to: todayStart) else { continue }
+            let completed = active.filter { intensity.level(for: $0, on: date) >= .full }.count
+            result[date] = Double(completed) / Double(active.count)
+        }
+        return result
+    }
+
     /// Ratio of days in the lookback window with ≥1 habit active. Reference: app_concept.md §5.1.
     /// Returns 0…100.
     func seriousnessIndex(habits: [Habit], lookbackDays days: Int = 90, asOf today: Date = .now) -> Double {

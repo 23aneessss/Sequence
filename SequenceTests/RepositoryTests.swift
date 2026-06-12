@@ -14,8 +14,12 @@ final class RepositoryTests: XCTestCase {
 
     /// Temp store URLs created during a test, removed in `tearDown`.
     private var tempURLs: [URL] = []
+    /// Containers must be retained for the test's lifetime — a `ModelContext`
+    /// whose `ModelContainer` has deallocated will crash on use.
+    private var retainedContainers: [ModelContainer] = []
 
     override func tearDownWithError() throws {
+        retainedContainers.removeAll()
         for url in tempURLs {
             try? FileManager.default.removeItem(at: url)
         }
@@ -26,10 +30,11 @@ final class RepositoryTests: XCTestCase {
 
     /// An isolated repository backed by a unique on-disk temp store.
     ///
-    /// We deliberately avoid `isStoredInMemoryOnly` here: SwiftData crashes when
-    /// an in-memory store is combined with `@Attribute(.unique)` constraints,
-    /// which our models use. A throwaway file-backed store behaves exactly like
-    /// production and is cleaned up in `tearDown`.
+    /// We deliberately avoid `isStoredInMemoryOnly`: SwiftData crashes when an
+    /// in-memory store is combined with `@Attribute(.unique)` constraints, which
+    /// our models use. A throwaway file-backed store behaves exactly like
+    /// production and is cleaned up in `tearDown`. The container is retained so
+    /// the repository's context stays valid for the whole test.
     @MainActor
     private func makeRepo() throws -> SequenceRepository {
         let url = FileManager.default.temporaryDirectory
@@ -37,6 +42,7 @@ final class RepositoryTests: XCTestCase {
         tempURLs.append(url)
         let config = ModelConfiguration(schema: SequenceModelContainer.schema, url: url)
         let container = try ModelContainer(for: SequenceModelContainer.schema, configurations: [config])
+        retainedContainers.append(container)
         return SequenceRepository(modelContext: container.mainContext)
     }
 

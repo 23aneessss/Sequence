@@ -28,6 +28,7 @@ struct SettingsView: View {
                     streakSection(settings: settings)
                     reminderSection(settings: settings)
                     paletteAndData
+                    accountSection
                     about
                 }
                 .padding(SequenceSpacing.screenMargin)
@@ -118,6 +119,21 @@ struct SettingsView: View {
             }
             Button { UserDefaults.standard.set(false, forKey: "sequence.coachMarksSeen") } label: {
                 linkRow("Reset coach marks", "arrow.counterclockwise")
+            }
+        }
+    }
+
+    private var accountSection: some View {
+        card("Account") {
+            if !auth.displayName.isEmpty {
+                row("Signed in as") { Text(auth.displayName).sequenceTextStyle(.subtext) }
+            }
+            Button(role: .destructive) { auth.signOut() } label: {
+                HStack {
+                    Image(systemName: "rectangle.portrait.and.arrow.right").foregroundStyle(SequenceColor.alert)
+                    Text("Sign out").sequenceTextStyle(.habitTitle).foregroundStyle(SequenceColor.alert)
+                    Spacer()
+                }
             }
         }
     }

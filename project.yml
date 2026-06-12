@@ -37,6 +37,11 @@ targets:
           - processing
         BGTaskSchedulerPermittedIdentifiers:
           - com.sequence.app.refresh
+    entitlements:
+      path: Sequence/Sequence.entitlements
+      properties:
+        com.apple.developer.applesignin:
+          - Default
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.sequence.app

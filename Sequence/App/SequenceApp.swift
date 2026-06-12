@@ -20,6 +20,7 @@ struct SequenceApp: App {
     @State private var settings = SettingsStore()
     @State private var palette = PaletteStore()
     @State private var notifications = NotificationManager()
+    @State private var auth = AuthManager()
 
     init() {
         do {
@@ -46,8 +47,12 @@ struct SequenceApp: App {
                 .environment(settings)
                 .environment(palette)
                 .environment(notifications)
+                .environment(auth)
                 .preferredColorScheme(settings.appearance.colorScheme)
-                .task { notifications.configure(repo: repository, settings: settings) }
+                .task {
+                    notifications.configure(repo: repository, settings: settings)
+                    await auth.revalidate()
+                }
         }
         .modelContainer(container)
         .onChange(of: scenePhase) { _, phase in

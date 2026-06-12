@@ -11,6 +11,7 @@ struct SettingsView: View {
     @Environment(SettingsStore.self) private var settings
     @Environment(SequenceRepository.self) private var repo
     @Environment(NotificationManager.self) private var notifications
+    @Environment(AuthManager.self) private var auth
 
     @State private var showPalette = false
     @State private var exportURL: URL?

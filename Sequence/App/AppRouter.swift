@@ -43,11 +43,12 @@ final class AppRouter {
 }
 
 /// Launch phases. Reference: app_concept.md §7.1, §8.1.
-private enum LaunchPhase { case splash, onboarding, main }
+private enum LaunchPhase { case splash, auth, onboarding, main }
 
 /// The single root view installed by `SequenceApp`.
 struct RootView: View {
     @Environment(SequenceRepository.self) private var repo
+    @Environment(AuthManager.self) private var auth
     @State private var router = AppRouter()
     @State private var phase: LaunchPhase = .splash
     @Namespace private var debugNamespace
@@ -59,6 +60,13 @@ struct RootView: View {
             debugScreen
         } else {
             orchestrated
+                .onChange(of: auth.status) { _, status in
+                    // Sign-out from Settings drops us back to the gate.
+                    if status == .signedOut {
+                        repo.setOwner("")
+                        withAnimation(.sequenceStructural) { phase = .auth }
+                    }
+                }
         }
     }
 
@@ -66,9 +74,13 @@ struct RootView: View {
         switch phase {
         case .splash:
             SplashView {
-                withAnimation(.sequenceFluid) {
-                    phase = router.hasOnboarded ? .main : .onboarding
-                }
+                withAnimation(.sequenceFluid) { phase = postSplashPhase() }
+            }
+            .transition(.opacity)
+        case .auth:
+            AuthView {
+                repo.setOwner(auth.userID)
+                withAnimation(.sequenceStructural) { phase = router.hasOnboarded ? .main : .onboarding }
             }
             .transition(.opacity)
         case .onboarding:
@@ -81,6 +93,13 @@ struct RootView: View {
             MainTabView()
                 .transition(.opacity.combined(with: .scale(scale: 0.98)))
         }
+    }
+
+    /// Where to go once the splash finishes: gate on auth first, then onboarding.
+    private func postSplashPhase() -> LaunchPhase {
+        guard auth.status == .signedIn else { return .auth }
+        repo.setOwner(auth.userID)
+        return router.hasOnboarded ? .main : .onboarding
     }
 
     @ViewBuilder private var debugScreen: some View {

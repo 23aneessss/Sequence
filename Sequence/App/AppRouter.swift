@@ -68,6 +68,10 @@ struct RootView: View {
             StatsView()
         case "settings":
             SettingsView()
+        case "palette":
+            PaletteManagerView()
+        case "yearly":
+            YearlyReviewView(habits: repo.habits)
         default:
             MainTabView()
         }

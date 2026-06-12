@@ -12,12 +12,31 @@ import SwiftData
 
 final class RepositoryTests: XCTestCase {
 
+    /// Temp store URLs created during a test, removed in `tearDown`.
+    private var tempURLs: [URL] = []
+
+    override func tearDownWithError() throws {
+        for url in tempURLs {
+            try? FileManager.default.removeItem(at: url)
+        }
+        tempURLs.removeAll()
+    }
+
     // MARK: - Helpers
 
-    /// An in-memory repository for fast, isolated CRUD tests.
+    /// An isolated repository backed by a unique on-disk temp store.
+    ///
+    /// We deliberately avoid `isStoredInMemoryOnly` here: SwiftData crashes when
+    /// an in-memory store is combined with `@Attribute(.unique)` constraints,
+    /// which our models use. A throwaway file-backed store behaves exactly like
+    /// production and is cleaned up in `tearDown`.
     @MainActor
-    private func makeInMemoryRepo() throws -> SequenceRepository {
-        let container = try SequenceModelContainer.inMemory()
+    private func makeRepo() throws -> SequenceRepository {
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("seq-test-\(UUID().uuidString).store")
+        tempURLs.append(url)
+        let config = ModelConfiguration(schema: SequenceModelContainer.schema, url: url)
+        let container = try ModelContainer(for: SequenceModelContainer.schema, configurations: [config])
         return SequenceRepository(modelContext: container.mainContext)
     }
 
@@ -25,7 +44,7 @@ final class RepositoryTests: XCTestCase {
 
     @MainActor
     func testCreateAndFetchHabit() throws {
-        let repo = try makeInMemoryRepo()
+        let repo = try makeRepo()
         XCTAssertTrue(repo.habits.isEmpty)
 
         repo.createHabit(name: "Meditate")
@@ -35,7 +54,7 @@ final class RepositoryTests: XCTestCase {
 
     @MainActor
     func testArchiveRemovesFromActiveButKeepsData() throws {
-        let repo = try makeInMemoryRepo()
+        let repo = try makeRepo()
         let habit = repo.createHabit(name: "Read")
 
         repo.archiveHabit(habit)
@@ -48,7 +67,7 @@ final class RepositoryTests: XCTestCase {
 
     @MainActor
     func testDeleteHabitCascadesLogs() throws {
-        let repo = try makeInMemoryRepo()
+        let repo = try makeRepo()
         let habit = repo.createHabit(name: "Pushups", type: .counted, dailyTarget: 100)
         repo.setValue(50, for: habit, on: .now)
         XCTAssertEqual(habit.logs.count, 1)
@@ -61,7 +80,7 @@ final class RepositoryTests: XCTestCase {
 
     @MainActor
     func testIncrementAccumulatesIntoSingleDailyLog() throws {
-        let repo = try makeInMemoryRepo()
+        let repo = try makeRepo()
         let habit = repo.createHabit(name: "Water", type: .counted, dailyTarget: 8)
 
         repo.increment(habit, by: 1)
@@ -74,7 +93,7 @@ final class RepositoryTests: XCTestCase {
 
     @MainActor
     func testSettingValueToZeroRemovesLog() throws {
-        let repo = try makeInMemoryRepo()
+        let repo = try makeRepo()
         let habit = repo.createHabit(name: "Vitamins")
         repo.setValue(1, for: habit, on: .now)
         XCTAssertEqual(habit.logs.count, 1)
@@ -85,7 +104,7 @@ final class RepositoryTests: XCTestCase {
 
     @MainActor
     func testToggleBinary() throws {
-        let repo = try makeInMemoryRepo()
+        let repo = try makeRepo()
         let habit = repo.createHabit(name: "Make bed", type: .binary, dailyTarget: 1)
 
         XCTAssertTrue(repo.toggleBinary(habit))
@@ -97,7 +116,7 @@ final class RepositoryTests: XCTestCase {
 
     @MainActor
     func testDifferentDaysProduceDistinctLogs() throws {
-        let repo = try makeInMemoryRepo()
+        let repo = try makeRepo()
         let habit = repo.createHabit(name: "Run", type: .counted, dailyTarget: 5)
         let today = Date.now
         let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: today)!
@@ -114,7 +133,7 @@ final class RepositoryTests: XCTestCase {
 
     @MainActor
     func testTasksSortedByPriorityThenTime() throws {
-        let repo = try makeInMemoryRepo()
+        let repo = try makeRepo()
         let day = Date.now
         repo.createTask(title: "Low", on: day, priority: .low)
         repo.createTask(title: "High", on: day, priority: .high)
@@ -126,7 +145,7 @@ final class RepositoryTests: XCTestCase {
 
     @MainActor
     func testToggleTaskStampsCompletion() throws {
-        let repo = try makeInMemoryRepo()
+        let repo = try makeRepo()
         let task = repo.createTask(title: "Ship it")
         XCTAssertFalse(task.isCompleted)
         XCTAssertNil(task.completedAt)
@@ -138,7 +157,7 @@ final class RepositoryTests: XCTestCase {
 
     @MainActor
     func testTemplatesExcludedFromDayBoard() throws {
-        let repo = try makeInMemoryRepo()
+        let repo = try makeRepo()
         let day = Date.now
         repo.createTask(title: "Normal", on: day)
         repo.createTask(title: "Template", on: day, isTemplate: true)

@@ -23,10 +23,4 @@ enum SequenceModelContainer {
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
         return try ModelContainer(for: schema, configurations: [config])
     }
-
-    /// An ephemeral container for tests/previews — never touches disk.
-    static func inMemory() throws -> ModelContainer {
-        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
-        return try ModelContainer(for: schema, configurations: [config])
-    }
 }

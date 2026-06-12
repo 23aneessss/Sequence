@@ -38,8 +38,19 @@ struct AuthView: View {
             .frame(height: 52)
             .clipShape(RoundedRectangle(cornerRadius: SequenceRadius.small, style: .continuous))
             .padding(.horizontal, SequenceSpacing.screenMargin)
-            .padding(.bottom, SequenceSpacing.section)
+
+            #if DEBUG
+            // Sign in with Apple crashes in the Simulator; this dev-only bypass
+            // (never in Release builds) keeps the rest of the app testable there.
+            Button("Continue without signing in (dev)") {
+                auth.signInForDevelopment()
+                onSignedIn()
+            }
+            .sequenceTextStyle(.subtext)
+            .foregroundStyle(SequenceColor.textSecondary)
+            #endif
         }
+        .padding(.bottom, SequenceSpacing.section)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(SequenceColor.background.ignoresSafeArea())
     }

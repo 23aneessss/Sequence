@@ -85,4 +85,18 @@ final class AuthManager: NSObject {
         UserDefaults.standard.removeObject(forKey: Keys.displayName)
         status = .signedOut
     }
+
+    #if DEBUG
+    /// Dev-only bypass. Sign in with Apple's XPC service frequently crashes in the
+    /// iOS Simulator (EXC_GUARD / LIBXPC), so this lets us exercise the rest of the
+    /// app there. Uses a fixed local id so partitioned data persists across launches.
+    /// Compiled out of Release builds entirely.
+    func signInForDevelopment() {
+        userID = "DEV_LOCAL_USER"
+        displayName = "Developer"
+        UserDefaults.standard.set(userID, forKey: Keys.userID)
+        UserDefaults.standard.set(displayName, forKey: Keys.displayName)
+        status = .signedIn
+    }
+    #endif
 }

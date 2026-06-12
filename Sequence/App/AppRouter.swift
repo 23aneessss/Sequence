@@ -42,38 +42,61 @@ final class AppRouter {
     }
 }
 
+/// Launch phases. Reference: app_concept.md §7.1, §8.1.
+private enum LaunchPhase { case splash, onboarding, main }
+
 /// The single root view installed by `SequenceApp`.
 struct RootView: View {
     @Environment(SequenceRepository.self) private var repo
+    @State private var router = AppRouter()
+    @State private var phase: LaunchPhase = .splash
     @Namespace private var debugNamespace
 
     var body: some View {
-        // The main app shell. Onboarding (Phase 10) will wrap this via AppRouter
-        // once it exists; for now we route straight to the tab bar.
-        //
         // SEQ_SCREEN env var routes directly to a screen for screenshot
         // verification (paired with SEQ_SEED). Normal launches ignore it.
+        if ProcessInfo.processInfo.environment["SEQ_SCREEN"] != nil {
+            debugScreen
+        } else {
+            orchestrated
+        }
+    }
+
+    @ViewBuilder private var orchestrated: some View {
+        switch phase {
+        case .splash:
+            SplashView {
+                withAnimation(.sequenceFluid) {
+                    phase = router.hasOnboarded ? .main : .onboarding
+                }
+            }
+            .transition(.opacity)
+        case .onboarding:
+            OnboardingView {
+                router.hasOnboarded = true
+                withAnimation(.sequenceStructural) { phase = .main }
+            }
+            .transition(.opacity)
+        case .main:
+            MainTabView()
+                .transition(.opacity.combined(with: .scale(scale: 0.98)))
+        }
+    }
+
+    @ViewBuilder private var debugScreen: some View {
         switch ProcessInfo.processInfo.environment["SEQ_SCREEN"] {
-        case "create":
-            HabitCreationSheet()
+        case "create":   HabitCreationSheet()
         case "detail":
             if let habit = repo.habits.first(where: { $0.type == .counted }) ?? repo.habits.first {
                 HabitDetailView(habit: habit, namespace: debugNamespace) {}
-            } else {
-                MainTabView()
             }
-        case "tasks":
-            TasksView()
-        case "stats":
-            StatsView()
-        case "settings":
-            SettingsView()
-        case "palette":
-            PaletteManagerView()
-        case "yearly":
-            YearlyReviewView(habits: repo.habits)
-        default:
-            MainTabView()
+        case "tasks":    TasksView()
+        case "stats":    StatsView()
+        case "settings": SettingsView()
+        case "palette":  PaletteManagerView()
+        case "yearly":   YearlyReviewView(habits: repo.habits)
+        case "onboarding": OnboardingView {}
+        default: EmptyView()
         }
     }
 }

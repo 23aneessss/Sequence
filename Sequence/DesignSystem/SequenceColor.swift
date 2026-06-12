@@ -22,6 +22,8 @@ enum SequenceColor {
     static let mintTeal = Color(hex: "6BEFBF")
     /// Interactive items, active selection.
     static let accentTeal = Color(hex: "48A69E")
+    /// Alert / streak-break accent (coral). Reference: app_concept.md §11.3.
+    static let alert = Color(hex: "E05C5C")
 
     // MARK: - System Adaptability (dynamic light/dark tokens)
 

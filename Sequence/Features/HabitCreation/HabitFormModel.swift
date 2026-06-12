@@ -28,12 +28,38 @@ final class HabitFormModel {
     var reminderOn = false
     var reminderTime = Calendar.sequence.date(bySettingHour: 9, minute: 0, second: 0, of: .now) ?? .now
 
-    /// Common SF Symbols offered in the icon picker.
+    /// SF Symbols offered in the icon picker, grouped by habit category.
     static let iconChoices = [
-        "flame.fill", "drop.fill", "book.fill", "dumbbell.fill",
-        "figure.run", "brain.head.profile", "laptopcomputer", "leaf.fill",
-        "bed.double.fill", "pencil", "music.note", "heart.fill",
-        "cup.and.saucer.fill", "moon.fill", "sun.max.fill", "pills.fill"
+        // Fitness & movement
+        "figure.run", "figure.walk", "figure.hiking", "figure.yoga",
+        "figure.strengthtraining.traditional", "figure.pool.swim", "dumbbell.fill",
+        "bicycle", "sportscourt.fill", "soccerball",
+        // Health & body
+        "heart.fill", "pills.fill", "cross.case.fill", "lungs.fill",
+        "bandage.fill", "stethoscope", "drop.fill", "eye.fill",
+        // Mind & mindfulness
+        "brain.head.profile", "sparkles", "leaf.fill", "moon.stars.fill", "lightbulb.fill",
+        // Study & work
+        "book.fill", "books.vertical.fill", "graduationcap.fill", "pencil",
+        "laptopcomputer", "doc.text.fill", "function", "text.book.closed.fill",
+        // Food & drink
+        "cup.and.saucer.fill", "fork.knife", "carrot.fill",
+        "takeoutbag.and.cup.and.straw.fill",
+        // Sleep & time
+        "bed.double.fill", "moon.fill", "sun.max.fill", "alarm.fill", "clock.fill",
+        // Finance
+        "dollarsign.circle.fill", "creditcard.fill", "banknote.fill",
+        "chart.line.uptrend.xyaxis",
+        // Creative
+        "music.note", "paintbrush.fill", "camera.fill", "guitars.fill",
+        "theatermasks.fill", "mic.fill", "paintpalette.fill",
+        // Social
+        "person.2.fill", "phone.fill", "envelope.fill", "bubble.left.fill", "hand.wave.fill",
+        // Home & chores
+        "house.fill", "cart.fill", "trash.fill", "hammer.fill", "basket.fill",
+        // Motivation & misc
+        "flame.fill", "star.fill", "trophy.fill", "flag.fill", "target",
+        "checkmark.seal.fill", "globe", "gamecontroller.fill", "airplane", "pawprint.fill"
     ]
 
     var isValid: Bool {

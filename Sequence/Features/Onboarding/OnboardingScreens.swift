@@ -108,18 +108,21 @@ struct OnboardingNotificationsScreen: View {
     var body: some View {
         OnboardingScaffold(headline: "Let Sequence remind you.",
                            subtext: "Streak-at-risk alerts keep your chain alive. You'll only hear from us when it matters.") {
-            Image(systemName: requested ? "bell.badge.fill" : "bell.fill")
-                .font(.system(size: 60))
-                .foregroundStyle(SequenceColor.accentTeal)
-                .overlay(alignment: .bottom) {
-                    if !requested {
-                        PrimaryButton(title: "Enable Reminders") {
-                            Task { await notifications.requestAuthorization(); requested = true }
-                        }
-                        .frame(width: 220)
-                        .offset(y: 70)
+            VStack(spacing: SequenceSpacing.section) {
+                Image(systemName: requested ? "bell.badge.fill" : "bell.fill")
+                    .font(.system(size: 60))
+                    .foregroundStyle(SequenceColor.accentTeal)
+                if requested {
+                    Label("Reminders on", systemImage: "checkmark.circle.fill")
+                        .sequenceTextStyle(.subtext)
+                        .foregroundStyle(SequenceColor.mintTeal)
+                } else {
+                    PrimaryButton(title: "Enable Reminders") {
+                        Task { await notifications.requestAuthorization(); requested = true }
                     }
+                    .frame(width: 220)
                 }
+            }
         }
     }
 }

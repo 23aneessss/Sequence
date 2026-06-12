@@ -80,3 +80,6 @@ iOSInjectionProject/
 *.tmp
 
 .DS_Store
+
+# graphify generated knowledge graph
+graphify-out/

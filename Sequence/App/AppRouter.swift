@@ -85,6 +85,7 @@ struct RootView: View {
 
     @ViewBuilder private var debugScreen: some View {
         switch ProcessInfo.processInfo.environment["SEQ_SCREEN"] {
+        case "main", "today": MainTabView()
         case "create":   HabitCreationSheet()
         case "detail":
             if let habit = repo.habits.first(where: { $0.type == .counted }) ?? repo.habits.first {

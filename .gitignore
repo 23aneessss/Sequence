@@ -78,3 +78,5 @@ iOSInjectionProject/
 # Logs / temp
 *.log
 *.tmp
+
+.DS_Store

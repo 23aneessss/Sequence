@@ -74,6 +74,24 @@ struct StreakEngine {
         return count
     }
 
+    /// When the current streak is 0, the length of the streak that ended most
+    /// recently — used for the "0d (was 23d)" break treatment (app_concept.md §11.3).
+    /// Returns 0 if there's an active current streak or no history.
+    func brokenStreakLength(for habit: Habit, asOf today: Date = .now) -> Int {
+        let days = qualifyingDays(for: habit)
+        guard currentStreak(days: days, asOf: today) == 0,
+              let mostRecent = days.max() else { return 0 }
+
+        var count = 0
+        var cursor = mostRecent
+        while days.contains(cursor) {
+            count += 1
+            guard let previous = calendar.date(byAdding: .day, value: -1, to: cursor) else { break }
+            cursor = previous
+        }
+        return count
+    }
+
     /// Longest consecutive run within a qualifying-day set.
     func bestStreak(days: Set<Date>) -> Int {
         guard !days.isEmpty else { return 0 }

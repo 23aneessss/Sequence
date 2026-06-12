@@ -27,7 +27,9 @@ struct HabitDetailView: View {
 
                 VStack(alignment: .leading, spacing: SequenceSpacing.item) {
                     Text("Sequence Graph").sequenceTextStyle(.sectionHeader)
-                    ContributionGraphView(habit: habit) { cell in editingCell = cell }
+                    ContributionGraphView(habit: habit,
+                                          weekStartsOn: settings.weekStartsOn,
+                                          direction: settings.graphDirection) { cell in editingCell = cell }
                 }
 
                 metricsGrid

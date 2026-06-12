@@ -75,20 +75,23 @@ struct HabitTypeSection: View {
 
 struct HabitColorSection: View {
     @Bindable var form: HabitFormModel
+    @Environment(PaletteStore.self) private var palette
 
     var body: some View {
         VStack(alignment: .leading, spacing: SequenceSpacing.item) {
             SectionLabel(text: "Color")
-            HStack(spacing: SequenceSpacing.item) {
-                ForEach(DefaultPalette.swatches) { swatch in
-                    Button { form.colorHex = swatch.hex } label: {
-                        Circle()
-                            .fill(Color(hex: swatch.hex))
-                            .frame(width: 36, height: 36)
-                            .overlay(Circle().strokeBorder(SequenceColor.textPrimary,
-                                                           lineWidth: form.colorHex == swatch.hex ? 3 : 0))
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: SequenceSpacing.item) {
+                    ForEach(palette.swatches) { swatch in
+                        Button { form.colorHex = swatch.hex } label: {
+                            Circle()
+                                .fill(Color(hex: swatch.hex))
+                                .frame(width: 36, height: 36)
+                                .overlay(Circle().strokeBorder(SequenceColor.textPrimary,
+                                                               lineWidth: form.colorHex == swatch.hex ? 3 : 0))
+                        }
+                        .buttonStyle(SequencePressStyle())
                     }
-                    .buttonStyle(SequencePressStyle())
                 }
             }
         }

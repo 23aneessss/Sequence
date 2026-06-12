@@ -10,7 +10,8 @@ import SwiftUI
 
 struct StreakBarView: View {
     let habit: Habit
-    private let streak = StreakEngine()
+    @Environment(SettingsStore.self) private var settings
+    private var streak: StreakEngine { settings.makeStreakEngine() }
 
     var body: some View {
         HStack(spacing: SequenceSpacing.item) {

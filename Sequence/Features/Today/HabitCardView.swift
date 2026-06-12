@@ -15,12 +15,13 @@ struct HabitCardView: View {
 
     @Environment(SequenceRepository.self) private var repo
     @Environment(HabitTimerManager.self) private var timer
+    @Environment(SettingsStore.self) private var settings
 
     @State private var pulse = false
     @State private var bulkEntry = false
     @State private var celebratedMilestone: Int?
 
-    private let streakEngine = StreakEngine()
+    private var streakEngine: StreakEngine { settings.makeStreakEngine() }
     private let intensity = IntensityEngine()
     private static let milestones: Set<Int> = [7, 14, 30, 60, 90, 180, 365]
 

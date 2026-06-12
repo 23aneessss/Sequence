@@ -29,10 +29,20 @@ final class PaletteStore {
            let decoded = try? JSONDecoder().decode([Swatch].self, from: data),
            !decoded.isEmpty {
             swatches = decoded
+            mergeNewDefaults() // surface colours added in later app versions
         } else {
             swatches = DefaultPalette.swatches.map { Swatch(name: $0.name, hex: $0.hex) }
             persist()
         }
+    }
+
+    /// Appends any default swatches not already present, preserving custom ones.
+    private func mergeNewDefaults() {
+        let present = Set(swatches.map { $0.hex.uppercased() })
+        let missing = DefaultPalette.swatches.filter { !present.contains($0.hex.uppercased()) }
+        guard !missing.isEmpty else { return }
+        swatches.append(contentsOf: missing.map { Swatch(name: $0.name, hex: $0.hex) })
+        persist()
     }
 
     func add(name: String, hex: String) {

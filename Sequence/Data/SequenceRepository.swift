@@ -26,17 +26,31 @@ final class SequenceRepository {
     /// (tasks are fetched on demand rather than held in a published array).
     private(set) var taskRevision = 0
 
+    /// The signed-in account whose data this repository exposes. Every fetch is
+    /// scoped to this id and every created record is stamped with it, so two
+    /// accounts on the same device never see each other's habits or tasks.
+    private(set) var ownerID: String = ""
+
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
         refresh()
+    }
+
+    /// Switches the active account and reloads its data. Called on sign-in/out.
+    func setOwner(_ id: String) {
+        guard id != ownerID else { return }
+        ownerID = id
+        refresh()
+        taskRevision += 1
     }
 
     // MARK: - Fetching
 
     /// Reloads `habits` from the store (non-archived, oldest first).
     func refresh() {
+        let owner = ownerID
         let descriptor = FetchDescriptor<Habit>(
-            predicate: #Predicate { !$0.isArchived },
+            predicate: #Predicate { $0.ownerID == owner && !$0.isArchived },
             sortBy: [SortDescriptor(\.createdAt, order: .forward)]
         )
         do {
@@ -49,7 +63,9 @@ final class SequenceRepository {
 
     /// All habits including archived ones, oldest first.
     func allHabits(includeArchived: Bool) -> [Habit] {
+        let owner = ownerID
         let descriptor = FetchDescriptor<Habit>(
+            predicate: #Predicate { $0.ownerID == owner },
             sortBy: [SortDescriptor(\.createdAt, order: .forward)]
         )
         let all = (try? modelContext.fetch(descriptor)) ?? []
@@ -83,6 +99,7 @@ final class SequenceRepository {
             schedule: schedule,
             reminderTime: reminderTime
         )
+        habit.ownerID = ownerID
         modelContext.insert(habit)
         save()
         refresh()
@@ -175,8 +192,9 @@ final class SequenceRepository {
     /// Tasks for a given day — high priority first, then earliest time anchor.
     func tasks(on date: Date) -> [DailyTask] {
         let day = date.normalizedDay()
+        let owner = ownerID
         let descriptor = FetchDescriptor<DailyTask>(
-            predicate: #Predicate { $0.date == day && !$0.isTemplate }
+            predicate: #Predicate { $0.ownerID == owner && $0.date == day && !$0.isTemplate }
         )
         let fetched = (try? modelContext.fetch(descriptor)) ?? []
         return fetched.sorted { lhs, rhs in
@@ -189,16 +207,18 @@ final class SequenceRepository {
 
     /// Template tasks the user can activate each morning.
     func templateTasks() -> [DailyTask] {
+        let owner = ownerID
         let descriptor = FetchDescriptor<DailyTask>(
-            predicate: #Predicate { $0.isTemplate }
+            predicate: #Predicate { $0.ownerID == owner && $0.isTemplate }
         )
         return (try? modelContext.fetch(descriptor)) ?? []
     }
 
     /// Every non-template task across all days (feeds the Task Contribution Graph).
     func allTasks() -> [DailyTask] {
+        let owner = ownerID
         let descriptor = FetchDescriptor<DailyTask>(
-            predicate: #Predicate { !$0.isTemplate },
+            predicate: #Predicate { $0.ownerID == owner && !$0.isTemplate },
             sortBy: [SortDescriptor(\.date, order: .forward)]
         )
         return (try? modelContext.fetch(descriptor)) ?? []
@@ -240,6 +260,7 @@ final class SequenceRepository {
         isTemplate: Bool = false
     ) -> DailyTask {
         let task = DailyTask(
+            ownerID: ownerID,
             title: title,
             date: date.normalizedDay(),
             priority: priority,

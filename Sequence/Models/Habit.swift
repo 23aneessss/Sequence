@@ -14,6 +14,10 @@ final class Habit: Identifiable {
     /// Stable identity, also used by notifications and exports.
     @Attribute(.unique) var id: UUID
 
+    /// Owning account (Sign in with Apple user id). Empty for pre-auth/local data.
+    /// Every fetch is scoped by this so accounts never see each other's habits.
+    var ownerID: String = ""
+
     var name: String
     /// SF Symbol name or emoji. Reference: app_concept.md §9.2.
     var iconIdentifier: String
@@ -44,6 +48,7 @@ final class Habit: Identifiable {
 
     init(
         id: UUID = UUID(),
+        ownerID: String = "",
         name: String,
         iconIdentifier: String = "flame.fill",
         colorHex: String = "48A69E",
@@ -59,6 +64,7 @@ final class Habit: Identifiable {
         logs: [HabitLog] = []
     ) {
         self.id = id
+        self.ownerID = ownerID
         self.name = name
         self.iconIdentifier = iconIdentifier
         self.colorHex = colorHex

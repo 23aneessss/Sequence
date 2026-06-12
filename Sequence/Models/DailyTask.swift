@@ -13,6 +13,9 @@ import SwiftData
 final class DailyTask {
     @Attribute(.unique) var id: UUID
 
+    /// Owning account (Sign in with Apple user id). Empty for pre-auth/local data.
+    var ownerID: String = ""
+
     var title: String
     /// The day this task belongs to, normalized to local midnight.
     var date: Date
@@ -28,6 +31,7 @@ final class DailyTask {
 
     init(
         id: UUID = UUID(),
+        ownerID: String = "",
         title: String,
         date: Date,
         isCompleted: Bool = false,
@@ -37,6 +41,7 @@ final class DailyTask {
         isTemplate: Bool = false
     ) {
         self.id = id
+        self.ownerID = ownerID
         self.title = title
         self.date = date
         self.isCompleted = isCompleted

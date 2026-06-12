@@ -16,6 +16,7 @@ struct HabitCardView: View {
     @Environment(SequenceRepository.self) private var repo
     @Environment(HabitTimerManager.self) private var timer
     @Environment(SettingsStore.self) private var settings
+    @Environment(NotificationManager.self) private var notifications
 
     @State private var pulse = false
     @State private var bulkEntry = false

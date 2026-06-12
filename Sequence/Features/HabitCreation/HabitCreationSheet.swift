@@ -11,6 +11,7 @@ import SwiftUI
 
 struct HabitCreationSheet: View {
     @Environment(SequenceRepository.self) private var repo
+    @Environment(NotificationManager.self) private var notifications
     @Environment(\.dismiss) private var dismiss
     @State private var form = HabitFormModel()
 
@@ -26,6 +27,7 @@ struct HabitCreationSheet: View {
                 HabitReminderSection(form: form)
                 PrimaryButton(title: "Create habit", isEnabled: form.isValid) {
                     form.create(using: repo)
+                    Task { await notifications.rescheduleAll() }
                     dismiss()
                 }
             }

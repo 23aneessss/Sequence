@@ -63,6 +63,20 @@ final class SettingsStore {
     var defaultReminderTime: Date {
         didSet { defaults.set(defaultReminderTime.timeIntervalSince1970, forKey: Keys.reminderTime) }
     }
+    /// Morning task-board summary time. Reference: app_concept.md §6.1 (Type 3, default 08:00).
+    var taskReminderTime: Date {
+        didSet { defaults.set(taskReminderTime.timeIntervalSince1970, forKey: Keys.taskReminderTime) }
+    }
+    /// Do-Not-Disturb window for streak-at-risk alerts. Reference: app_concept.md §6.1.
+    var dndEnabled: Bool {
+        didSet { defaults.set(dndEnabled, forKey: Keys.dndEnabled) }
+    }
+    var dndStart: Date {
+        didSet { defaults.set(dndStart.timeIntervalSince1970, forKey: Keys.dndStart) }
+    }
+    var dndEnd: Date {
+        didSet { defaults.set(dndEnd.timeIntervalSince1970, forKey: Keys.dndEnd) }
+    }
 
     init() {
         appearance = AppAppearance(rawValue: defaults.string(forKey: Keys.appearance) ?? "") ?? .system
@@ -75,6 +89,21 @@ final class SettingsStore {
         defaultReminderTime = storedReminder == 0
             ? (Calendar.sequence.date(bySettingHour: 9, minute: 0, second: 0, of: .now) ?? .now)
             : Date(timeIntervalSince1970: storedReminder)
+
+        let cal = Calendar.sequence
+        let storedTask = defaults.double(forKey: Keys.taskReminderTime)
+        taskReminderTime = storedTask == 0
+            ? (cal.date(bySettingHour: 8, minute: 0, second: 0, of: .now) ?? .now)
+            : Date(timeIntervalSince1970: storedTask)
+        dndEnabled = defaults.object(forKey: Keys.dndEnabled) as? Bool ?? true
+        let storedDndStart = defaults.double(forKey: Keys.dndStart)
+        dndStart = storedDndStart == 0
+            ? (cal.date(bySettingHour: 22, minute: 0, second: 0, of: .now) ?? .now)
+            : Date(timeIntervalSince1970: storedDndStart)
+        let storedDndEnd = defaults.double(forKey: Keys.dndEnd)
+        dndEnd = storedDndEnd == 0
+            ? (cal.date(bySettingHour: 7, minute: 0, second: 0, of: .now) ?? .now)
+            : Date(timeIntervalSince1970: storedDndEnd)
     }
 
     /// A streak engine configured with the user's threshold + week start.
@@ -82,5 +111,16 @@ final class SettingsStore {
         var engine = StreakEngine()
         engine.minLevel = IntensityLevel(rawValue: streakMinLevel) ?? .minimal
         return engine
+    }
+
+    /// Whether a given clock time falls inside the DND window (handles overnight spans).
+    func isInDoNotDisturb(_ date: Date, _ calendar: Calendar = .sequence) -> Bool {
+        guard dndEnabled else { return false }
+        let minutes = { (d: Date) -> Int in
+            let c = calendar.dateComponents([.hour, .minute], from: d)
+            return (c.hour ?? 0) * 60 + (c.minute ?? 0)
+        }
+        let now = minutes(date), start = minutes(dndStart), end = minutes(dndEnd)
+        return start <= end ? (now >= start && now < end) : (now >= start || now < end)
     }
 }

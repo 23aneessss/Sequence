@@ -22,6 +22,7 @@ struct SettingsView: View {
                 VStack(alignment: .leading, spacing: SequenceSpacing.section) {
                     Text("Settings").sequenceStyle(.appTitle)
                     appearanceSection(settings: settings)
+                    notificationsSection(settings: settings)
                     graphSection(settings: settings)
                     streakSection(settings: settings)
                     reminderSection(settings: settings)
@@ -43,6 +44,35 @@ struct SettingsView: View {
                 ForEach(AppAppearance.allCases) { Text($0.displayName).tag($0) }
             }
             .pickerStyle(.segmented)
+        }
+    }
+
+    private func notificationsSection(settings: SettingsStore) -> some View {
+        card("Notifications") {
+            if notifications.authorizationStatus == .authorized {
+                row("Status") { Text("On").sequenceTextStyle(.subtext).foregroundStyle(SequenceColor.mintTeal) }
+                DatePicker("Morning task reminder",
+                           selection: Binding(get: { settings.taskReminderTime }, set: { settings.taskReminderTime = $0 }),
+                           displayedComponents: .hourAndMinute)
+                    .sequenceTextStyle(.habitTitle)
+                Toggle(isOn: Binding(get: { settings.dndEnabled }, set: { settings.dndEnabled = $0 })) {
+                    Text("Quiet hours").sequenceTextStyle(.habitTitle)
+                }.tint(SequenceColor.accentTeal)
+                if settings.dndEnabled {
+                    DatePicker("From", selection: Binding(get: { settings.dndStart }, set: { settings.dndStart = $0 }),
+                               displayedComponents: .hourAndMinute).sequenceTextStyle(.subtext)
+                    DatePicker("To", selection: Binding(get: { settings.dndEnd }, set: { settings.dndEnd = $0 }),
+                               displayedComponents: .hourAndMinute).sequenceTextStyle(.subtext)
+                }
+            } else {
+                Text("Streak-at-risk alerts keep your chain alive.").sequenceTextStyle(.subtext)
+                PrimaryButton(title: "Enable reminders") {
+                    Task {
+                        await notifications.requestAuthorization()
+                        await notifications.rescheduleAll()
+                    }
+                }
+            }
         }
     }
 

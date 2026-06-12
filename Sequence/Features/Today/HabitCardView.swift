@@ -211,6 +211,7 @@ struct HabitCardView: View {
         let after = currentStreak
         guard after > before, Self.milestones.contains(after) else { return }
         UINotificationFeedbackGenerator().notificationOccurred(.success)
+        notifications.sendMilestone(habit: habit, days: after)
         withAnimation(.sequenceFluid) { celebratedMilestone = after }
         DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
             withAnimation(.sequenceFluid) { celebratedMilestone = nil }

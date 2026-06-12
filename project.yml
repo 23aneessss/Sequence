@@ -37,11 +37,14 @@ targets:
           - processing
         BGTaskSchedulerPermittedIdentifiers:
           - com.sequence.app.refresh
-    entitlements:
-      path: Sequence/Sequence.entitlements
-      properties:
-        com.apple.developer.applesignin:
-          - Default
+    # Sign in with Apple requires a PAID Apple Developer account. Re-enable this
+    # block (and add the capability in Xcode) once on a paid team; until then the
+    # app builds on a free Apple ID and uses the DEBUG dev-bypass to sign in.
+    # entitlements:
+    #   path: Sequence/Sequence.entitlements
+    #   properties:
+    #     com.apple.developer.applesignin:
+    #       - Default
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.sequence.app

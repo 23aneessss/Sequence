@@ -12,7 +12,7 @@
 
 SCHEME      := Sequence
 PROJECT     := Sequence.xcodeproj
-BUNDLE_ID   := com.sequence.app
+BUNDLE_ID   := com.anaasbouziani.sequence
 SIMULATOR   ?= iPhone 17 Pro
 DESTINATION := platform=iOS Simulator,name=$(SIMULATOR)
 APP_PATH     = $(shell find ~/Library/Developer/Xcode/DerivedData/Sequence-*/Build/Products/Debug-iphonesimulator -maxdepth 1 -name "Sequence.app" 2>/dev/null | head -1)

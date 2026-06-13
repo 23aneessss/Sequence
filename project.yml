@@ -47,7 +47,7 @@ targets:
     #       - Default
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.sequence.app
+        PRODUCT_BUNDLE_IDENTIFIER: com.anaasbouziani.sequence
         PRODUCT_NAME: Sequence
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
@@ -64,7 +64,7 @@ targets:
       - target: Sequence
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.sequence.app.tests
+        PRODUCT_BUNDLE_IDENTIFIER: com.anaasbouziani.sequence.tests
         GENERATE_INFOPLIST_FILE: YES
 
 schemes:

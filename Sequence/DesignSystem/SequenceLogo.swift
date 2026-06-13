@@ -3,18 +3,25 @@
 //  Sequence
 //
 //  The app mark, drawn in SwiftUI as a small contribution grid so no raster
-//  asset is required. Used on the splash and onboarding.
+//  asset is required. Used on the splash, auth, and onboarding.
+//
+//  With `animated: true` the 16 cells "build" — each square pops in one-by-one
+//  in reading order, so the mark assembles itself rather than just appearing.
 //
 
 import SwiftUI
 
 struct SequenceLogo: View {
     var size: CGFloat = 96
-    /// 0…1 reveal progress for the populate animation (1 = fully shown).
-    var progress: Double = 1
+    /// When true, the cells pop in one-by-one on appear (the build animation).
+    var animated: Bool = false
+
+    @State private var built = false
 
     private let dimension = 4
     private let hex = DefaultPalette.defaultHex
+    /// Seconds between each cell appearing during the build.
+    private let perCellDelay = 0.05
 
     var body: some View {
         let spacing = size * 0.08
@@ -23,17 +30,24 @@ struct SequenceLogo: View {
             ForEach(0..<dimension, id: \.self) { row in
                 HStack(spacing: spacing) {
                     ForEach(0..<dimension, id: \.self) { col in
-                        let index = row * dimension + col
-                        let level = levelFor(row: row, col: col)
-                        RoundedRectangle(cornerRadius: cell * 0.24, style: .continuous)
-                            .fill(ColorScaleEngine.color(forHex: hex, level: level))
-                            .frame(width: cell, height: cell)
-                            .opacity(Double(index) / 16.0 <= progress ? 1 : 0)
+                        cellView(row: row, col: col, side: cell)
                     }
                 }
             }
         }
         .frame(width: size, height: size)
+        .onAppear { if animated { built = true } }
+    }
+
+    private func cellView(row: Int, col: Int, side: CGFloat) -> some View {
+        let order = row * dimension + col          // reading order → one-by-one
+        let shown = !animated || built
+        return RoundedRectangle(cornerRadius: side * 0.24, style: .continuous)
+            .fill(ColorScaleEngine.color(forHex: hex, level: levelFor(row: row, col: col)))
+            .frame(width: side, height: side)
+            .scaleEffect(shown ? 1 : 0.2)
+            .opacity(shown ? 1 : 0)
+            .animation(.sequenceStructural.delay(Double(order) * perCellDelay), value: built)
     }
 
     /// A pleasing diagonal intensity gradient across the mark.
@@ -44,5 +58,5 @@ struct SequenceLogo: View {
 }
 
 #Preview {
-    SequenceLogo(size: 120).padding().background(SequenceColor.background)
+    SequenceLogo(size: 120, animated: true).padding().background(SequenceColor.background)
 }

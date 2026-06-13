@@ -32,14 +32,10 @@ private struct OnboardingScaffold<Top: View>: View {
 // MARK: - Screen 1 — Concept
 
 struct OnboardingConceptScreen: View {
-    @State private var progress: Double = 0
     var body: some View {
         OnboardingScaffold(headline: "Every day is a square.",
                            subtext: "Sequence tracks your habits the way GitHub tracks code — a living visual record of consistency.") {
-            SequenceLogo(size: 150, progress: progress)
-        }
-        .onAppear {
-            withAnimation(.sequenceFluid.delay(0.2)) { progress = 1 }
+            SequenceLogo(size: 150, animated: true)
         }
     }
 }

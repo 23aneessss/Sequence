@@ -10,6 +10,7 @@
 
 import Foundation
 import Observation
+import AuthenticationServices
 
 @Observable
 final class AuthManager {
@@ -48,6 +49,27 @@ final class AuthManager {
         UserDefaults.standard.set(userID, forKey: Keys.userID)
         UserDefaults.standard.set(displayName, forKey: Keys.displayName)
         status = .signedIn
+    }
+
+    /// Processes a Sign in with Apple result. Note: the entitlement requires a
+    /// paid Apple Developer account to actually authorize; on a free account this
+    /// returns a failure and the user falls back to the name login.
+    func handleApple(_ result: Result<ASAuthorization, Error>) {
+        switch result {
+        case .success(let authorization):
+            guard let credential = authorization.credential as? ASAuthorizationAppleIDCredential else { return }
+            userID = "apple:" + credential.user
+            if let given = credential.fullName?.givenName, !given.isEmpty {
+                displayName = given
+            } else if displayName.isEmpty {
+                displayName = "Friend"
+            }
+            UserDefaults.standard.set(userID, forKey: Keys.userID)
+            UserDefaults.standard.set(displayName, forKey: Keys.displayName)
+            status = .signedIn
+        case .failure(let error):
+            print("AuthManager: Apple sign in failed — \(error.localizedDescription)")
+        }
     }
 
     func signOut() {

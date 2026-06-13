@@ -2,8 +2,8 @@
 //  TodayHeaderView.swift
 //  Sequence
 //
-//  Dashboard hero: a personal, time-aware greeting on a teal gradient with the
-//  day's progress. Reference: app_concept.md §8.1.
+//  Dashboard header: a personal, time-aware greeting plus the day's at-a-glance
+//  progress. Reference: app_concept.md §8.1.
 //
 
 import SwiftUI
@@ -35,43 +35,29 @@ struct TodayHeaderView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: SequenceSpacing.half) {
-            Text(greeting)
-                .sequenceTextStyle(.greeting)
-                .foregroundStyle(.white)
+            Text(greeting).sequenceTextStyle(.greeting)
             Text(Date.now.formatted(.dateTime.weekday(.wide).month().day()))
                 .sequenceTextStyle(.subtext)
-                .foregroundStyle(.white.opacity(0.85))
-            if !habits.isEmpty { progressBar }
+            if !habits.isEmpty { progressPill }
         }
-        .padding(SequenceSpacing.cardPadding)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            LinearGradient(colors: [SequenceColor.mintTeal, SequenceColor.accentTeal],
-                           startPoint: .topLeading, endPoint: .bottomTrailing)
-        )
-        .clipShape(RoundedRectangle(cornerRadius: SequenceRadius.card, style: .continuous))
-        .shadow(color: SequenceColor.accentTeal.opacity(0.25), radius: 14, x: 0, y: 6)
     }
 
-    private var progressBar: some View {
-        let total = habits.count
-        let fraction = total > 0 ? Double(completedToday) / Double(total) : 0
-        return VStack(alignment: .leading, spacing: SequenceSpacing.half) {
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    Capsule().fill(.white.opacity(0.25))
-                    Capsule().fill(.white)
-                        .frame(width: max(8, geo.size.width * fraction))
-                }
-            }
-            .frame(height: 8)
-            .animation(.sequenceFluid, value: completedToday)
+    private var progressPill: some View {
+        HStack(spacing: SequenceSpacing.half) {
+            Image(systemName: allDone ? "checkmark.seal.fill" : "circle.lefthalf.filled")
+                .font(.system(size: 13, weight: .semibold))
             Text(allDone
-                 ? "Perfect day — all \(total) done"
-                 : "\(completedToday) of \(total) complete today")
-                .sequenceTextStyle(.subtext)
-                .foregroundStyle(.white)
+                 ? "All \(habits.count) done — perfect day"
+                 : "\(completedToday) of \(habits.count) complete today")
+                .sequenceTextStyle(.habitTitle)
         }
-        .padding(.top, SequenceSpacing.item)
+        .foregroundStyle(allDone ? SequenceColor.mintTeal : SequenceColor.accentTeal)
+        .padding(.vertical, SequenceSpacing.half)
+        .padding(.horizontal, SequenceSpacing.item)
+        .background(
+            Capsule().fill((allDone ? SequenceColor.mintTeal : SequenceColor.accentTeal).opacity(0.12))
+        )
+        .padding(.top, SequenceSpacing.half)
     }
 }

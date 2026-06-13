@@ -152,6 +152,14 @@ struct HabitCardView: View {
     private var cardBackground: some View {
         RoundedRectangle(cornerRadius: SequenceRadius.card, style: .continuous)
             .fill(SequenceColor.surfacePrimary)
+            .overlay(
+                // A faint wash of the habit's own colour gives each card identity.
+                RoundedRectangle(cornerRadius: SequenceRadius.card, style: .continuous)
+                    .fill(LinearGradient(
+                        colors: [Color(hex: habit.colorHex).opacity(0.12), .clear],
+                        startPoint: .topLeading, endPoint: .bottomTrailing))
+            )
+            .shadow(color: .black.opacity(0.06), radius: 10, x: 0, y: 4)
     }
 
     private var brokenBorder: some View {

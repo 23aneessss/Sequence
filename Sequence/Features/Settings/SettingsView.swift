@@ -53,18 +53,23 @@ struct SettingsView: View {
         card("Notifications") {
             if notifications.authorizationStatus == .authorized {
                 row("Status") { Text("On").sequenceTextStyle(.subtext).foregroundStyle(SequenceColor.mintTeal) }
-                DatePicker("Morning task reminder",
-                           selection: Binding(get: { settings.taskReminderTime }, set: { settings.taskReminderTime = $0 }),
-                           displayedComponents: .hourAndMinute)
-                    .sequenceTextStyle(.habitTitle)
+                row("Morning reminder") {
+                    DatePicker("", selection: Binding(get: { settings.taskReminderTime }, set: { settings.taskReminderTime = $0 }),
+                               displayedComponents: .hourAndMinute)
+                        .labelsHidden()
+                }
                 Toggle(isOn: Binding(get: { settings.dndEnabled }, set: { settings.dndEnabled = $0 })) {
                     Text("Quiet hours").sequenceTextStyle(.habitTitle)
                 }.tint(SequenceColor.accentTeal)
                 if settings.dndEnabled {
-                    DatePicker("From", selection: Binding(get: { settings.dndStart }, set: { settings.dndStart = $0 }),
-                               displayedComponents: .hourAndMinute).sequenceTextStyle(.subtext)
-                    DatePicker("To", selection: Binding(get: { settings.dndEnd }, set: { settings.dndEnd = $0 }),
-                               displayedComponents: .hourAndMinute).sequenceTextStyle(.subtext)
+                    row("From") {
+                        DatePicker("", selection: Binding(get: { settings.dndStart }, set: { settings.dndStart = $0 }),
+                                   displayedComponents: .hourAndMinute).labelsHidden()
+                    }
+                    row("To") {
+                        DatePicker("", selection: Binding(get: { settings.dndEnd }, set: { settings.dndEnd = $0 }),
+                                   displayedComponents: .hourAndMinute).labelsHidden()
+                    }
                 }
             } else {
                 Text("Streak-at-risk alerts keep your chain alive.").sequenceTextStyle(.subtext)
@@ -95,18 +100,20 @@ struct SettingsView: View {
 
     private func streakSection(settings: SettingsStore) -> some View {
         card("Streak threshold") {
-            Stepper("Counts at level \(settings.streakMinLevel)+",
-                    value: Binding(get: { settings.streakMinLevel }, set: { settings.streakMinLevel = $0 }), in: 1...5)
-                .sequenceTextStyle(.habitTitle)
+            row("Counts at level \(settings.streakMinLevel)+") {
+                Stepper("", value: Binding(get: { settings.streakMinLevel }, set: { settings.streakMinLevel = $0 }), in: 1...5)
+                    .labelsHidden()
+            }
         }
     }
 
     private func reminderSection(settings: SettingsStore) -> some View {
         card("Default reminder") {
-            DatePicker("Time", selection: Binding(get: { settings.defaultReminderTime },
+            row("Time") {
+                DatePicker("", selection: Binding(get: { settings.defaultReminderTime },
                                                   set: { settings.defaultReminderTime = $0 }),
-                       displayedComponents: .hourAndMinute)
-                .sequenceTextStyle(.habitTitle)
+                           displayedComponents: .hourAndMinute).labelsHidden()
+            }
         }
     }
 
@@ -159,7 +166,11 @@ struct SettingsView: View {
     }
 
     private func row<Trailing: View>(_ label: String, @ViewBuilder trailing: () -> Trailing) -> some View {
-        HStack { Text(label).sequenceTextStyle(.habitTitle); Spacer(); trailing() }
+        HStack(spacing: SequenceSpacing.item) {
+            Text(label).sequenceTextStyle(.habitTitle).lineLimit(1)
+            Spacer(minLength: SequenceSpacing.item)
+            trailing().fixedSize().layoutPriority(1)
+        }
     }
 
     private func linkRow(_ label: String, _ icon: String) -> some View {
